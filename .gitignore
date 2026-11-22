@@ -1,5 +1,6 @@
 .terraform/
 *.md
+!README.md
 *.tfstate
 *.tfstate.*
 *.tfplan
@@ -9,6 +10,9 @@ function.zip
 __pycache__/
 *.pyc
 .deps/
+.venv/
+terraform/archive.zip
+terraform/archive2.zip
 test-request.json
 test-invalid.json
 test-failure.json
