@@ -10,6 +10,7 @@ __pycache__/
 *.pyc
 .deps/
 test-request.json
+test-invalid.json
 test-failure.json
 test-archive.zip
 test-original.html
