@@ -1,0 +1,87 @@
+openapi: 3.0.0
+info:
+  title: Система архивирования
+  version: 1.0.0
+x-yc-apigateway:
+  service_account_id: ${service_account_id}
+paths:
+  /tasks:
+    post:
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, url]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                url:
+                  type: string
+                  pattern: '^https?://.+'
+      x-yc-apigateway-validator:
+        validateRequestBody: true
+      x-yc-apigateway-integration:
+        type: cloud_ymq
+        action: SendMessage
+        queue_url: ${queue_url}
+        folder_id: ${folder_id}
+        payload_format_type: body
+      responses:
+        '200':
+          description: Задание принято
+          x-yc-status-mapping: 202
+        '400':
+          description: Некорректное задание
+  /archives:
+    get:
+      operationId: listArchives
+      x-yc-apigateway-integration:
+        type: cloud_ydb
+        action: Scan
+        database: ${database_path}
+        table_name: archives
+      responses:
+        '200':
+          description: Список архивов
+  /archives/{key}:
+    get:
+      operationId: getArchive
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_ydb
+        action: GetItem
+        database: ${database_path}
+        table_name: archives
+        key: '{"key":"{key}"}'
+      responses:
+        '200':
+          description: Сведения об архиве
+        '404':
+          description: Архив не найден
+  /download/{key}:
+    get:
+      operationId: downloadArchive
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: object_storage
+        bucket: ${bucket_name}
+        object: '{key}'
+      responses:
+        '200':
+          description: ZIP-архив
+        '404':
+          description: Архив не найден
